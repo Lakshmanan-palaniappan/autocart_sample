@@ -40,7 +40,7 @@ class _Scanner_BState extends State<Scanner_B> {
                   color: Colors.blue.withOpacity(0.1),
                   child: Center(
                     child: Text(
-                      "Tap to Scan Barcode",
+                      "Tap to Scan",
                       style: TextStyle(
                         color: Colors.blue,
                         fontSize: 20.0,
