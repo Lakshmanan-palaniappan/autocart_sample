@@ -2,87 +2,64 @@ import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
+
 class Scanner_B extends StatefulWidget {
-  const Scanner_B({super.key});
+  const Scanner_B({Key? key}) : super(key: key);
 
   @override
   State<Scanner_B> createState() => _Scanner_BState();
 }
 
 class _Scanner_BState extends State<Scanner_B> {
-  String barcode='unknown';
-  /*void initState() {
-    super.initState();
-    ScanB();
-  }*/
+  List<String> scannedBarcodes = [];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Barcode Scanner"),
-
       ),
-      body: Center(
-        child: Column(
-          children: [
-            Container(
-              height: 300,
-              width: double.infinity,
-              color: Colors.amber,
-              child: Text("Products"),
-
+      body: ListView.builder(
+        itemCount: scannedBarcodes.length,
+        itemBuilder: (context, index) {
+          return Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              color: Colors.blue.withOpacity(0.1),
             ),
-            Expanded(
-              child: GestureDetector(
-                onTap: ScanB,
-                child: Container(
-                  color: Colors.blue.withOpacity(0.1),
-                  child: Center(
-                    child: Text(
-                      "Tap to Scan",
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontSize: 20.0,
-                      ),
-                    ),
-                  ),
-                ),
+            margin: EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(16.0),
+
+            child: Text(
+              scannedBarcodes[index],
+              style: TextStyle(
+                color: Colors.blue,
+                fontSize: 20.0,
+
               ),
             ),
-          ],
-        ),
-
-              //TextButton(onPressed: ScanB, child: Text("scan")),
-
-
-
-
-
-
-        ),
-
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: scanBarcode,
+        tooltip: 'Scan',
+        child: Icon(Icons.camera_alt),
+      ),
     );
-
-  }
-  Future<void> ScanB() async{
-    final barcode= await FlutterBarcodeScanner.scanBarcode(
-        "#ff6666",
-        "cancel",
-        true,
-
-        ScanMode.BARCODE,
-
-    );
-    setState((){
-      this.barcode=barcode;
-    });
-    ScanB();
   }
 
-
-
+  Future<void> scanBarcode() async {
+    final barcode = await FlutterBarcodeScanner.scanBarcode(
+      "#ff6666",
+      "Cancel",
+      true,
+      ScanMode.BARCODE,
+    );
+    if (barcode != '-1') {
+      scannedBarcodes.add(barcode);
+      setState(() {});
+      await scanBarcode();
+    }
+  }
 }
-
-
-
