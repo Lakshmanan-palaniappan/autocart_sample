@@ -1,4 +1,4 @@
-import 'package:autocart/pages/barcode_scanner.dart';
+import 'package:autocart/pages/login.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 
@@ -23,7 +23,7 @@ class _Landing_pageState extends State<Landing_page> {
           
         }
     );
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Scanner_B()));
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Login()));
     
   }
   
