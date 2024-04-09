@@ -45,69 +45,91 @@ class _Scanner_BState extends State<Scanner_B> {
 
         itemCount: scannedBarcodes.length,
         itemBuilder: (context, index) {
-          return Container(
+          final itemKey = GlobalKey();
+          return AnimatedSwitcher(
+            duration:  Duration(milliseconds: 500),
+            child: Dismissible(
+              key: itemKey,
+              direction: DismissDirection.endToStart,
+              background: Container(
+                alignment: Alignment.centerRight,
+                padding: EdgeInsets.only(right: 20.0),
+                color: Colors.red,
+                child: Icon(
+                  Icons.delete,
+                  color: Colors.white,
+                ),
+              ),
+              onDismissed: (direction) {
+                setState(() {
+                  scannedBarcodes = List.from(scannedBarcodes)..removeAt(index);
+                });
+              },
+              child: Container(
 
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Colors.blue.withOpacity(0.1),
-            ),
-            margin: EdgeInsets.all(8.0),
-            padding: EdgeInsets.all(16.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.blue.withOpacity(0.1),
+                ),
+                margin: EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(16.0),
 
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 130,
-                  height: 150,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 130,
+                      height: 150,
 
-                  decoration: BoxDecoration(
+                      decoration: BoxDecoration(
 
-                      borderRadius: BorderRadius.circular(8.0),
-                      color: Colors.lightGreenAccent,
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                          borderRadius: BorderRadius.circular(8.0),
+                          color: Colors.lightGreenAccent,
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
 
-                  child: Center(
-                    child: Padding(
+                      child: Center(
+                        child: Padding(
 
-                      padding: const EdgeInsets.all(8.0),
-                      child: SingleChildScrollView(
-                        child: Text(
-                          scannedBarcodes[index],
-                          style: TextStyle(
-                            fontFamily: 'Muller',
+                          padding: const EdgeInsets.all(8.0),
+                          child: SingleChildScrollView(
+                            child: Text(
+                              scannedBarcodes[index],
+                              style: TextStyle(
+                                fontFamily: 'Muller',
 
-                            color: Colors.black,
-                            fontSize: 12.0,
-                        
+                                color: Colors.black,
+                                fontSize: 12.0,
+
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                SizedBox(width: 150.0,),
+                    SizedBox(width: 150.0,),
 
-                Expanded(
-                  child: Container(
-                    height: 80,
-                    width: MediaQuery.of(context).size.width / 2,
-                    decoration: BoxDecoration(),
-                    child: Center(
-                      child: Text(
-                        "₹20",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                  
+                    Expanded(
+                      child: Container(
+                        height: 80,
+                        width: MediaQuery.of(context).size.width / 2,
+                        decoration: BoxDecoration(),
+                        child: Center(
+                          child: Text(
+                            "₹20",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           );
         },
