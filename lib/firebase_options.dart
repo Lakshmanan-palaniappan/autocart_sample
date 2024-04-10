@@ -19,11 +19,9 @@ class DefaultFirebaseOptions {
     if (kIsWeb) {
       throw UnsupportedError(
         'DefaultFirebaseOptions have not been configured for web - '
-<<<<<<< HEAD
-        'you can reconfigure this by running the FlutterFire CLI again.',
-=======
+
+
             'you can reconfigure this by running the FlutterFire CLI again.',
->>>>>>> origin/main
       );
     }
     switch (defaultTargetPlatform) {
@@ -32,38 +30,27 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for ios - '
-<<<<<<< HEAD
           'you can reconfigure this by running the FlutterFire CLI again.',
-=======
-              'you can reconfigure this by running the FlutterFire CLI again.',
->>>>>>> origin/main
+
         );
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
-<<<<<<< HEAD
-          'you can reconfigure this by running the FlutterFire CLI again.',
-=======
+
               'you can reconfigure this by running the FlutterFire CLI again.',
->>>>>>> origin/main
         );
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
-<<<<<<< HEAD
-          'you can reconfigure this by running the FlutterFire CLI again.',
-=======
+
+
               'you can reconfigure this by running the FlutterFire CLI again.',
->>>>>>> origin/main
         );
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
-<<<<<<< HEAD
           'you can reconfigure this by running the FlutterFire CLI again.',
-=======
-              'you can reconfigure this by running the FlutterFire CLI again.',
->>>>>>> origin/main
+
         );
       default:
         throw UnsupportedError(
