@@ -16,6 +16,7 @@ class _LoginState extends State<Login> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.lightGreenAccent,
+        centerTitle: true,
         title: Text("AutoCart",style: TextStyle(
             fontFamily: 'Battery',
             fontWeight: FontWeight.bold
@@ -79,19 +80,23 @@ class _login2State extends State<login2> {
               width: MediaQuery.of(context).size.width*0.9,
               child: Column(
                 children: [
-                  Text("CART",style: TextStyle(fontSize: 28),),
+                  Text("CART",style: TextStyle(fontSize: 28,fontFamily: 'Muller'),),
                   TextFormField(
                     validator: (value){
 
                     },
                     controller: userNameController,
                     decoration: InputDecoration(
+
                         hintText: 'Cart Code',
-                        hintStyle: TextStyle(color: Colors.blueGrey),
+
+
+                        hintStyle: TextStyle(color: Colors.blueGrey,),
                         border: OutlineInputBorder()
                     ),
                   ),
                   SizedBox(height: 15,),
+
                   TextFormField(
                     validator: (value){
 
@@ -103,7 +108,24 @@ class _login2State extends State<login2> {
                         border: OutlineInputBorder()
                     ),
                   ),
-                  ElevatedButton(onPressed: login, child: Text("ACTIVATE", style: TextStyle(fontSize: 30)),),
+                  SizedBox(height: 8,),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      )
+                    ),
+                    onPressed: login,
+                    child: Text(
+                        "ACTIVATE",
+                        style: TextStyle(
+                            fontSize: 30,
+                          fontFamily: 'Muller',
+                          color: Colors.lightGreenAccent
+                        )
+                    ),
+                  ),
                 ],
               ),
               padding: EdgeInsets.all(15),
