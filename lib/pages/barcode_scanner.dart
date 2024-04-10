@@ -17,6 +17,7 @@ class Scanner_B extends StatefulWidget {
 
 class _Scanner_BState extends State<Scanner_B> {
   final String user;
+  int total = 0;
   List<String> scannedBarcodes = [];
   final player=AudioPlayer();
   _Scanner_BState(this.user);
@@ -157,7 +158,7 @@ class _Scanner_BState extends State<Scanner_B> {
         },
         tooltip: 'Pay',
         icon: Icon(Icons.payments_outlined),
-        label: Text("Pay"),
+        label: Text("Pay RS.$total.0"),
         backgroundColor: Colors.lightGreenAccent,
         /*onPressed: (){},
         elevation: 0,
@@ -183,7 +184,7 @@ class _Scanner_BState extends State<Scanner_B> {
     if (barcode != '-1') {
       player.play(AssetSource('beep-04.mp3'));
       scannedBarcodes.add(barcode);
-      setState(() {});
+      setState(() {total+=100;});
       await scanBarcode();
 
     }
