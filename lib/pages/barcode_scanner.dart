@@ -20,7 +20,7 @@ class _Scanner_BState extends State<Scanner_B> {
   final player=AudioPlayer();
   _Scanner_BState(this.user);
 
-  Widget item(int index) {
+  Widget item(int index,int rs) {
     final itemKey = GlobalKey();
     return AnimatedSwitcher(
       duration:  Duration(milliseconds: 500),
@@ -45,18 +45,18 @@ class _Scanner_BState extends State<Scanner_B> {
 
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            color: Colors.blue.withOpacity(0.1),
+            color: Colors.grey,
           ),
           margin: EdgeInsets.all(8.0),
-          padding: EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(5.0),
 
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 130,
-                height: 150,
+                width: 250,
+                height: 100,
 
                 decoration: BoxDecoration(
 
@@ -74,7 +74,7 @@ class _Scanner_BState extends State<Scanner_B> {
                         scannedBarcodes[index],
                         style: TextStyle(
                           fontFamily: 'Muller',
-
+                          fontWeight: FontWeight.bold,
                           color: Colors.black,
                           fontSize: 12.0,
 
@@ -84,20 +84,19 @@ class _Scanner_BState extends State<Scanner_B> {
                   ),
                 ),
               ),
-              SizedBox(width: 150.0,),
-
+              SizedBox(width: 4,),
               Expanded(
                 child: Container(
-                  height: 80,
+                  height: 100,
                   width: MediaQuery.of(context).size.width / 2,
-                  decoration: BoxDecoration(),
+                  decoration: BoxDecoration(color: Colors.black,borderRadius: BorderRadius.circular(10)),
                   child: Center(
                     child: Text(
-                      "₹20",
+                      "₹$rs",
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 15,
-
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold
                       ),
                     ),
                   ),
@@ -137,7 +136,7 @@ class _Scanner_BState extends State<Scanner_B> {
 
         itemCount: scannedBarcodes.length,
         itemBuilder: (context, index) {
-          return item(index);
+          return item(index,100);
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -155,7 +154,7 @@ class _Scanner_BState extends State<Scanner_B> {
 
         },
         tooltip: 'Pay',
-        icon: Icon(Icons.fast_forward),
+        icon: Icon(Icons.payments_outlined),
         label: Text("Pay"),
         backgroundColor: Colors.lightGreenAccent,
         /*onPressed: (){},
