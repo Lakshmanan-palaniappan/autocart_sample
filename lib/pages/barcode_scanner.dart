@@ -140,7 +140,7 @@ class _Scanner_BState extends State<Scanner_B> {
           scannedBarcodes.isEmpty
               ? Center(
             child: Text(
-              "No products added",
+              "Add Products !",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -159,7 +159,7 @@ class _Scanner_BState extends State<Scanner_B> {
           scannedBarcodes.isEmpty
               ? Center(
             child: Text(
-              "No products added",
+              "Add Products !",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,

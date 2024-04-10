@@ -1,6 +1,9 @@
 import 'package:autocart/pages/login.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'barcode_scanner.dart';
 
 class Landing_page extends StatefulWidget {
   const Landing_page({super.key});
@@ -15,6 +18,8 @@ class _Landing_pageState extends State<Landing_page> {
     _navigatetohome();
   }
   _navigatetohome()async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String loggedInUser = prefs.getString('loggedInUser') ?? '';
     await Future.delayed(
         Duration(
           milliseconds: 10000
@@ -23,7 +28,19 @@ class _Landing_pageState extends State<Landing_page> {
           
         }
     );
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Login()));
+    if (loggedInUser.isNotEmpty) {
+      // User is logged in, navigate to barcode scanner page
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => Scanner_B(user: loggedInUser)),
+      );
+    } else {
+      // User is not logged in, navigate to login page
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => Login()),
+      );
+    }
     
   }
   

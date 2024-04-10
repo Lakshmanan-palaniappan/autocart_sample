@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:autocart/pages/barcode_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 class Login extends StatefulWidget {
   const Login({super.key});
 
@@ -48,7 +49,7 @@ class _login2State extends State<login2> {
     // });
     print("Data sent");
   }
-  login(){
+  login() async {
     String enteredUsername = userNameController.text;
     String user;
     if(enteredUsername == 'cart1' || enteredUsername == 'cart2'){
@@ -56,6 +57,8 @@ class _login2State extends State<login2> {
       if(passwordController.text == '123'){
         print("Valid👍");
         sent_val();
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('loggedInUser', user);
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Scanner_B(user: user,)));
       }
       else
