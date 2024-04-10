@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:slide_to_act/slide_to_act.dart';
 
 class Scanner_B extends StatefulWidget {
   final String user;
@@ -134,14 +135,54 @@ class _Scanner_BState extends State<Scanner_B> {
           fontWeight: FontWeight.bold
         ),),
       ),
-      body: ListView.builder(
+      body: Stack(
+        children: [
+          ListView.builder(
 
-        itemCount: scannedBarcodes.length,
-        itemBuilder: (context, index) {
-          return item(index,100);
-        },
+            itemCount: scannedBarcodes.length,
+            itemBuilder: (context, index) {
+              return item(index,100);
+            },
+          ),
+          Padding(
+
+            padding: const EdgeInsets.all(12.0),
+            child: SlideAction(
+              alignment: Alignment.bottomCenter,
+              elevation: 0,
+              borderRadius: 12.0,
+              innerColor: Colors.black,
+              outerColor: Colors.green,
+              animationDuration: Duration(milliseconds: 1000),
+              text: "Pay RS.$total.0",
+              textStyle: TextStyle(
+                color: Colors.black,
+                fontFamily: "Muller",
+                fontWeight: FontWeight.bold,
+                fontSize: 14
+              ),
+              sliderButtonIcon: Icon(Icons.fast_forward,color: Colors.lightGreenAccent,size: 25,),
+              onSubmit: ()async{
+                Navigator.push(context, MaterialPageRoute(builder: (context)=>Payment_Page()));
+                var product=<String,dynamic>{};
+                int i = 0;
+                for(var item in scannedBarcodes)
+                {
+                  i++;
+                  String p = 'pd'+i.toString();
+                  product.addAll({p: item});
+                }
+                await FirebaseFirestore.instance.collection(user).add(product);
+
+              },
+            ),
+          )
+
+        ],
+
       ),
-      floatingActionButton: FloatingActionButton.extended(
+
+      /*floatingActionButton: FloatingActionButton.extended(
 
         onPressed: ()async{
           Navigator.push(context, MaterialPageRoute(builder: (context)=>Payment_Page()));
@@ -160,7 +201,7 @@ class _Scanner_BState extends State<Scanner_B> {
         icon: Icon(Icons.payments_outlined),
         label: Text("Pay RS.$total.0"),
         backgroundColor: Colors.lightGreenAccent,
-        /*onPressed: (){},
+        *//*onPressed: (){},
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
         tooltip: 'Pay',
@@ -168,8 +209,8 @@ class _Scanner_BState extends State<Scanner_B> {
         child: Icon(
             Icons.fast_forward,
           size: 30,
-        ),*/
-      ),
+        ),*//*
+      ),*/
     );
   }
 
