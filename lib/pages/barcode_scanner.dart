@@ -137,6 +137,18 @@ class _Scanner_BState extends State<Scanner_B> {
       ),
       body: Stack(
         children: [
+          scannedBarcodes.isEmpty
+              ? Center(
+            child: Text(
+              "No products added",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: "Muller"
+              ),
+            ),
+          ):
           ListView.builder(
 
             itemCount: scannedBarcodes.length,
@@ -144,6 +156,18 @@ class _Scanner_BState extends State<Scanner_B> {
               return item(index,100);
             },
           ),
+          scannedBarcodes.isEmpty
+              ? Center(
+            child: Text(
+              "No products added",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: "Muller"
+              ),
+            ),
+          ):
           Padding(
 
             padding: const EdgeInsets.all(12.0),

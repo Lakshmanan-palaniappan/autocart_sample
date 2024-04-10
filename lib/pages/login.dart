@@ -49,11 +49,14 @@ class _login2State extends State<login2> {
     print("Data sent");
   }
   login(){
-    if(userNameController.text == 'cart1' || userNameController.text == 'cart2'){
+    String enteredUsername = userNameController.text;
+    String user;
+    if(enteredUsername == 'cart1' || enteredUsername == 'cart2'){
+      user = enteredUsername;
       if(passwordController.text == '123'){
         print("Valid👍");
         sent_val();
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Scanner_B(user: userNameController.text,)));
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Scanner_B(user: user,)));
       }
       else
         {
