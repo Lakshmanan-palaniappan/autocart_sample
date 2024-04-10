@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "459761528186",
+    "project_id": "auto-cart-f84e2",
+    "storage_bucket": "auto-cart-f84e2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:459761528186:android:6cecaded153c44a38ebac3",
+        "android_client_info": {
+          "package_name": "com.example.autocart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAoBNCUSmTyb93J7jg51gXPmdnrhLMmjrw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

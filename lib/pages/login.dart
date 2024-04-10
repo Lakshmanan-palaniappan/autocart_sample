@@ -48,12 +48,19 @@ class _login2State extends State<login2> {
     print("Data sent");
   }
   login(){
-    if(userNameController.text == 'cart1' || userNameController.text == 'cart2' && passwordController.text == '123'){
-      sent_val();
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Scanner_B(user: userNameController.text,)));
+    if(userNameController.text == 'cart1' || userNameController.text == 'cart2'){
+      if(passwordController.text == '123'){
+        print("Valid👍");
+        sent_val();
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Scanner_B(user: userNameController.text,)));
+      }
+      else
+        {
+          print('Incorrect Key');
+        }
     }
     else{
-      print("Invalid");
+      print("Invalid Cart Code");
     }
     print(userNameController.text);
     print(passwordController.text);

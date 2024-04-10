@@ -142,7 +142,16 @@ class _Scanner_BState extends State<Scanner_B> {
       ),
       floatingActionButton: FloatingActionButton.extended(
 
-        onPressed: (){
+        onPressed: ()async{
+          var product=<String,dynamic>{};
+          int i = 0;
+          for(var item in scannedBarcodes)
+            {
+              i++;
+              String p = 'pd'+i.toString();
+              product.addAll({p: item});
+            }
+          await FirebaseFirestore.instance.collection(user).add(product);
 
         },
         tooltip: 'Pay',
