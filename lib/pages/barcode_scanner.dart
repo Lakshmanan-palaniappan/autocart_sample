@@ -1,5 +1,6 @@
 import 'dart:ffi';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:autocart/pages/payment.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -143,6 +144,7 @@ class _Scanner_BState extends State<Scanner_B> {
       floatingActionButton: FloatingActionButton.extended(
 
         onPressed: ()async{
+          Navigator.push(context, MaterialPageRoute(builder: (context)=>Payment_Page()));
           var product=<String,dynamic>{};
           int i = 0;
           for(var item in scannedBarcodes)
