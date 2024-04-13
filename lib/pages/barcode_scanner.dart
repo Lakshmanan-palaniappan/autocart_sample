@@ -162,6 +162,7 @@ class _Scanner_BState extends State<Scanner_B> {
                     child: Text(
                       "₹$p.0",
                       style: TextStyle(
+                        fontFamily: 'Muller',
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.bold
