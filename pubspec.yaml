@@ -48,6 +48,7 @@ dependencies:
   csv: ^6.0.0
   slide_to_act: ^2.0.2
   firebase_auth: ^4.19.1
+  flutter_svg: ^2.0.10+1
 
 
 dev_dependencies:
@@ -76,6 +77,8 @@ flutter:
   assets:
     - assets/beep-04.mp3
     - assets/items.csv
+    - assets/cart.svg
+    - assets/beep-10.mp3
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:slide_to_act/slide_to_act.dart';
 
 class Scanner_B extends StatefulWidget {
@@ -33,14 +34,19 @@ class _Scanner_BState extends State<Scanner_B> {
 
         if(identical(item[0], int.parse(barcode)))
           {
-            result = [item[1],item[2].toString()];
-            break;
+            return [item[1], item[2].toString()];
+            //break;
           }
       }
-    return result;
+    return [];
+
+
   }
 
   Widget item(int index) {
+    if (index < 0 || index >= price.length) {
+      return SizedBox();
+    }
     int p = price[index];
     final itemKey = GlobalKey();
     return AnimatedSwitcher(
@@ -206,6 +212,7 @@ class _Scanner_BState extends State<Scanner_B> {
               ),
               sliderButtonIcon: Icon(Icons.fast_forward,color: Colors.lightGreenAccent,size: 25,),
               onSubmit: ()async{
+
                 Navigator.push(context, MaterialPageRoute(builder: (context)=>Payment_Page()));
                 var product=<String,dynamic>{};
                 int i = 0;
@@ -266,13 +273,68 @@ class _Scanner_BState extends State<Scanner_B> {
       ScanMode.BARCODE,
     );
     if (barcode != '-1') {
-      player.play(AssetSource('beep-04.mp3'));
+
       scannedBarcodes.add(barcode);
       List<String> ans = check(barcode);
-      name.add(ans[0]);
-      price.add(int.parse(ans[1]));
-      setState(() {total+=int.parse(ans[1]);});
-      await scanBarcode();
+      if (ans.isNotEmpty) {
+        player.play(AssetSource('beep-04.mp3'));
+        scannedBarcodes.add(barcode);
+        name.add(ans[0]);
+        price.add(int.parse(ans[1]));
+        setState(() {total+=int.parse(ans[1]);});
+        await scanBarcode();
+      } else {
+        player.play(AssetSource('beep-10.mp3'));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Stack(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(16),
+                  height: 90,
+                    decoration: BoxDecoration(
+                      color: Color(0xFFC72C41),
+                      borderRadius: BorderRadius.all(Radius.circular(20))
+                    ),
+                    child: const Row(
+
+                      children: [
+                        SizedBox(width: 48,),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Oh Snap !",style: TextStyle(
+                                fontFamily: 'Muller',
+                                color: Colors.white,
+                                fontSize: 18
+                              ),
+                              ),
+                              SizedBox(height: 8,),
+                              Text("Not Our Product",style: TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'Muller',
+                                fontSize: 12
+                              ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                ),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+          ),
+        );
+      }
+
     }
   }
 }

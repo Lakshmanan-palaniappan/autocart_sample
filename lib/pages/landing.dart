@@ -36,7 +36,7 @@ class _Landing_pageState extends State<Landing_page> {
     String loggedInUser = prefs.getString('loggedInUser') ?? '';
     await Future.delayed(
         Duration(
-          milliseconds: 10000
+          milliseconds: 5000
     ),
         (){
           
