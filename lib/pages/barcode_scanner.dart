@@ -62,19 +62,13 @@ class _Scanner_BState extends State<Scanner_B> {
     print("customerName=$customerName");
 
     final Uint8List data = await inv.generateInvoice(name, price, customerName, mobileNumber);
-
-    // Save the PDF file
     await inv.savedPdfFile("Invoice.pdf", data);
-
-    // Open the saved PDF file
-    print("Opening PDF file"); // Add this line for debugging
     OpenFile.open('Invoice.pdf');
     nameController.clear();
     mobileController.clear();
   }
 
   void _handlePaymentError() {
-    // Handle payment error event from Razorpay
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Payment Failed'),
@@ -84,7 +78,6 @@ class _Scanner_BState extends State<Scanner_B> {
   }
 
   void _handleExternalWallet() {
-    // Handle external wallet event from Razorpay
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('External Wallet Selected'),
