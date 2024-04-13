@@ -1,5 +1,7 @@
 import 'package:autocart/pages/login.dart';
+import 'package:csv/csv.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,9 +15,21 @@ class Landing_page extends StatefulWidget {
 }
 
 class _Landing_pageState extends State<Landing_page> {
+  List<List<dynamic>> data = [[]];
+  _Landing_pageState(){
+    loadCSV();
+  }
+  @override
   void initState(){
     super.initState();
     _navigatetohome();
+  }
+  void loadCSV ( ) async {
+    final  rawData = await rootBundle.loadString("assets/items.csv");
+    List<List<dynamic>> _listData = const CsvToListConverter().convert(rawData);
+    setState(() {
+      data = _listData;
+    });
   }
   _navigatetohome()async{
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -32,13 +46,13 @@ class _Landing_pageState extends State<Landing_page> {
       // User is logged in, navigate to barcode scanner page
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => Scanner_B(user: loggedInUser)),
+        MaterialPageRoute(builder: (context) => Scanner_B(user: loggedInUser,items: data,)),
       );
     } else {
       // User is not logged in, navigate to login page
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => Login()),
+        MaterialPageRoute(builder: (context) => Login(items: data,)),
       );
     }
     

@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:autocart/pages/payment.dart';
 import 'package:flutter/cupertino.dart';
@@ -10,20 +9,39 @@ import 'package:slide_to_act/slide_to_act.dart';
 
 class Scanner_B extends StatefulWidget {
   final String user;
-  const Scanner_B({Key? key,required this.user}) : super(key: key);
+  final List<List<dynamic>> items;
+  const Scanner_B({Key? key,required this.user,required this.items}) : super(key: key);
 
   @override
-  State<Scanner_B> createState() => _Scanner_BState(user);
+  State<Scanner_B> createState() => _Scanner_BState(user,items);
 }
 
 class _Scanner_BState extends State<Scanner_B> {
+  final List<List<dynamic>> items;
   final String user;
   int total = 0;
   List<String> scannedBarcodes = [];
+  List<String> name = [];
+  List<int> price = [];
   final player=AudioPlayer();
-  _Scanner_BState(this.user);
+  _Scanner_BState(this.user,this.items);
 
-  Widget item(int index,int rs) {
+  List<String> check(String barcode){
+    List<String> result = ['Undefined Item!!','0'];
+    for(var item in items)
+      {
+
+        if(identical(item[0], int.parse(barcode)))
+          {
+            result = [item[1],item[2].toString()];
+            break;
+          }
+      }
+    return result;
+  }
+
+  Widget item(int index) {
+    int p = price[index];
     final itemKey = GlobalKey();
     return AnimatedSwitcher(
       duration:  Duration(milliseconds: 500),
@@ -74,7 +92,7 @@ class _Scanner_BState extends State<Scanner_B> {
                     padding: const EdgeInsets.all(8.0),
                     child: SingleChildScrollView(
                       child: Text(
-                        scannedBarcodes[index],
+                        name[index],
                         style: TextStyle(
                           fontFamily: 'Muller',
                           fontWeight: FontWeight.bold,
@@ -95,7 +113,7 @@ class _Scanner_BState extends State<Scanner_B> {
                   decoration: BoxDecoration(color: Colors.black,borderRadius: BorderRadius.circular(10)),
                   child: Center(
                     child: Text(
-                      "₹$rs",
+                      "₹$p.0",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -153,7 +171,8 @@ class _Scanner_BState extends State<Scanner_B> {
 
             itemCount: scannedBarcodes.length,
             itemBuilder: (context, index) {
-              return item(index,100);
+              print(index);
+              return item(index);
             },
           ),
           scannedBarcodes.isEmpty
@@ -249,9 +268,11 @@ class _Scanner_BState extends State<Scanner_B> {
     if (barcode != '-1') {
       player.play(AssetSource('beep-04.mp3'));
       scannedBarcodes.add(barcode);
-      setState(() {total+=100;});
+      List<String> ans = check(barcode);
+      name.add(ans[0]);
+      price.add(int.parse(ans[1]));
+      setState(() {total+=int.parse(ans[1]);});
       await scanBarcode();
-
     }
   }
 }
