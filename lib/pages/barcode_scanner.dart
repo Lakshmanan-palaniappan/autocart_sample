@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:autocart/pages/invoice.dart';
 import 'package:autocart/pages/payment.dart';
+import 'package:autocart/pages/pdf.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -27,6 +28,8 @@ class _Scanner_BState extends State<Scanner_B> {
   final List<List<dynamic>> items;
   final String user;
   int total = 0;
+  TextEditingController nameController = TextEditingController();
+  TextEditingController mobileController = TextEditingController();
   List<String> scannedBarcodes = [];
   List<String> name = [];
   List<int> price = [];
@@ -35,11 +38,9 @@ class _Scanner_BState extends State<Scanner_B> {
   void initState(){
     super.initState();
     _razorPay=new Razorpay();
-    _razorPay.on(Razorpay.EVENT_PAYMENT_SUCCESS, succespayment);
-    _razorPay.on(Razorpay.EVENT_PAYMENT_ERROR, errorpayment);
-    _razorPay.on(Razorpay.EVENT_EXTERNAL_WALLET, externalwallet);
+
   }
-  void succespayment() async {
+  /*void succespayment() async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Payment Successful'),
@@ -50,9 +51,30 @@ class _Scanner_BState extends State<Scanner_B> {
     // Generate and display the PDF invoice only if payment is successful
     final Uint8List data = await inv.generateInvoice(name, price);
     await inv.savedPdfFile("Invoice.pdf", data);
+    OpenFile.open("Invoice.pdf");
+  }*/
+
+  Future<void> _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    print("Payment successful");
+
+    String customerName = nameController.text.trim();
+    String mobileNumber = mobileController.text.trim();
+    print("customerName=$customerName");
+
+    final Uint8List data = await inv.generateInvoice(name, price, customerName, mobileNumber);
+
+    // Save the PDF file
+    await inv.savedPdfFile("Invoice.pdf", data);
+
+    // Open the saved PDF file
+    print("Opening PDF file"); // Add this line for debugging
+    OpenFile.open('Invoice.pdf');
+    nameController.clear();
+    mobileController.clear();
   }
 
-  void errorpayment(){
+  void _handlePaymentError() {
+    // Handle payment error event from Razorpay
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Payment Failed'),
@@ -60,7 +82,9 @@ class _Scanner_BState extends State<Scanner_B> {
       ),
     );
   }
-  void externalwallet(){
+
+  void _handleExternalWallet() {
+    // Handle external wallet event from Razorpay
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('External Wallet Selected'),
@@ -188,6 +212,9 @@ class _Scanner_BState extends State<Scanner_B> {
   }
   @override
   Widget build(BuildContext context) {
+    _razorPay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorPay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorPay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -262,17 +289,14 @@ class _Scanner_BState extends State<Scanner_B> {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
-                      TextEditingController nameController = TextEditingController();
-                      TextEditingController mobileController = TextEditingController();
-
                       return AlertDialog(
                         backgroundColor: Colors.lightGreenAccent,
                         title: Text(
                           'Enter Details',
                           style: TextStyle(
-                              fontFamily: 'Muller',
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold
+                            fontFamily: 'Muller',
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         content: Column(
@@ -284,9 +308,9 @@ class _Scanner_BState extends State<Scanner_B> {
                               decoration: InputDecoration(
                                 hintText: 'Enter Name',
                                 hintStyle: TextStyle(
-                                    color: Colors.grey,
-                                    fontFamily: 'Muller',
-                                    fontSize: 12
+                                  color: Colors.grey,
+                                  fontFamily: 'Muller',
+                                  fontSize: 12,
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
@@ -305,9 +329,9 @@ class _Scanner_BState extends State<Scanner_B> {
                                 contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
                               ),
                               style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12.0,
-                                  fontFamily: "Muller"
+                                color: Colors.white,
+                                fontSize: 12.0,
+                                fontFamily: "Muller",
                               ),
                             ),
                             SizedBox(height: 20),
@@ -356,7 +380,7 @@ class _Scanner_BState extends State<Scanner_B> {
                                 borderRadius: BorderRadius.circular(10.0),
                               ),
                             ),
-                            onPressed: () {
+                            onPressed: () async {
                               String name = nameController.text.trim();
                               String mobile = mobileController.text.trim();
                               if (name.isEmpty || mobile.isEmpty) {
@@ -365,24 +389,24 @@ class _Scanner_BState extends State<Scanner_B> {
                                     content: Text(
                                       "Please enter your name and mobile number.",
                                       style: TextStyle(
-                                          fontFamily: 'Muller',
-                                          color: Colors.white,
-                                          fontSize: 12
+                                        fontFamily: 'Muller',
+                                        color: Colors.white,
+                                        fontSize: 12,
                                       ),
                                     ),
                                     backgroundColor: Colors.red,
                                   ),
                                 );
-                              } else{
+                              } else {
                                 Navigator.pop(context);
                                 var options = {
                                   'key': 'rzp_test_Spkh9hBLwHj1UR',
                                   'amount': total * 100,
-                                  'name': 'AutoCart',
+                                  'name': name,
                                   'description': 'Payment for your purchase',
                                   'prefill': {
-                                    'name': nameController.text.trim(),
-                                    'contact': mobileController.text.trim(),
+                                    'name': name,
+                                    'contact': mobile,
                                   },
                                   'external': {
                                     'wallets': ['paytm']
@@ -390,22 +414,17 @@ class _Scanner_BState extends State<Scanner_B> {
                                 };
                                 try {
                                   _razorPay.open(options);
-
-
                                 } catch (e) {
                                   debugPrint('Error: $e');
                                 }
-                                nameController.clear();
-                                mobileController.clear();
-
-
+                                // nameController.clear();
+                                // mobileController.clear();
                               }
-
                             },
                             child: Text(
                               'Pay Now',
                               style: TextStyle(
-                                  fontFamily: 'Muller'
+                                fontFamily: 'Muller',
                               ),
                             ),
                           ),

@@ -7,7 +7,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/services.dart';
 
 class Invoice {
-  Future<Uint8List> generateInvoice(List<String> names, List<int> prices) async {
+  Future<Uint8List> generateInvoice(List<String> names, List<int> prices, String customerName, String mobileNumber) async {
     final pdf = pw.Document();
 
     // Load a custom TTF font that supports the Indian Rupee symbol
@@ -44,7 +44,7 @@ class Invoice {
                         crossAxisAlignment: pw.CrossAxisAlignment.end,
                         children: [
                           pw.Text(
-                            'Shop Name',
+                            'AUTO CART',
                             style: pw.TextStyle(
                               fontSize: 14,
                               fontWeight: pw.FontWeight.bold,
@@ -52,14 +52,14 @@ class Invoice {
                             ),
                           ),
                           pw.Text(
-                            'Address, City',
+                            '12/9,west Houston, Columbus',
                             style: pw.TextStyle(
                               fontSize: 10,
                               color: PdfColors.black,
                             ),
                           ),
                           pw.Text(
-                            'Phone: +1234567890',
+                            'Phone:+61898765434',
                             style: pw.TextStyle(
                               fontSize: 10,
                               color: PdfColors.black,
@@ -75,6 +75,21 @@ class Invoice {
                 pw.Text(
                   'Invoice',
                   style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+                ),
+                pw.SizedBox(height: 20),
+                // Customer details
+                pw.Row(
+                  children: [
+                    pw.Text(
+                      'Customer Name: $customerName',
+                      style: pw.TextStyle(fontSize: 12),
+                    ),
+                    pw.SizedBox(width: 20),
+                    pw.Text(
+                      'Mobile Number: $mobileNumber',
+                      style: pw.TextStyle(fontSize: 12),
+                    ),
+                  ],
                 ),
                 pw.SizedBox(height: 20),
                 // Table for items and prices
@@ -141,14 +156,21 @@ class Invoice {
       ),
     );
 
+
     return pdf.save();
   }
+
 
   Future<void> savedPdfFile(String filename, Uint8List byteList) async {
     final output = await getTemporaryDirectory();
     var filepath = "${output.path}/$filename.pdf";
     final file = File(filepath);
-    await file.writeAsBytes(byteList);
+    try {
+      await file.writeAsBytes(byteList);
+      print("PDF file saved at: $filepath");
+    } catch (e) {
+      print("Error saving PDF file: $e");
+    }
     await OpenFile.open(filepath);
   }
 }
