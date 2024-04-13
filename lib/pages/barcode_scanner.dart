@@ -1,11 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:audioplayers/audioplayers.dart';
+import 'package:autocart/pages/invoice.dart';
 import 'package:autocart/pages/payment.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:open_file/open_file.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:slide_to_act/slide_to_act.dart';
 
@@ -19,6 +22,7 @@ class Scanner_B extends StatefulWidget {
 }
 
 class _Scanner_BState extends State<Scanner_B> {
+  final Invoice inv=new Invoice();
   late Razorpay _razorPay;
   final List<List<dynamic>> items;
   final String user;
@@ -35,14 +39,19 @@ class _Scanner_BState extends State<Scanner_B> {
     _razorPay.on(Razorpay.EVENT_PAYMENT_ERROR, errorpayment);
     _razorPay.on(Razorpay.EVENT_EXTERNAL_WALLET, externalwallet);
   }
-  void succespayment(){
+  void succespayment() async {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Payment Successful'),
         backgroundColor: Colors.green,
       ),
     );
+
+    // Generate and display the PDF invoice only if payment is successful
+    final Uint8List data = await inv.generateInvoice(name, price);
+    await inv.savedPdfFile("Invoice.pdf", data);
   }
+
   void errorpayment(){
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -191,7 +200,10 @@ class _Scanner_BState extends State<Scanner_B> {
 
           ),
           SizedBox(width: 6.0,),
-          IconButton(onPressed: (){}, icon: Icon(Icons.info_outline))
+          IconButton(onPressed: () async{
+
+
+          }, icon: Icon(Icons.info_outline))
         ],
         backgroundColor: Colors.lightGreenAccent,
         centerTitle: true,
@@ -246,6 +258,7 @@ class _Scanner_BState extends State<Scanner_B> {
                   size: 25,
                 ),
                 onSubmit: () async {
+
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
@@ -377,7 +390,7 @@ class _Scanner_BState extends State<Scanner_B> {
                                 };
                                 try {
                                   _razorPay.open(options);
-                                  succespayment();
+
 
                                 } catch (e) {
                                   debugPrint('Error: $e');
@@ -405,9 +418,20 @@ class _Scanner_BState extends State<Scanner_B> {
               ),
             ),
 
+
         ],
 
       ),
+      /*floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          // Call the method to generate the PDF
+          final Uint8List data = await inv.generateInvoice(name, price);
+
+          // Save and open the PDF
+          await inv.savedPdfFile("Invoice.pdf", data);
+        },
+        child: Icon(Icons.picture_as_pdf),
+      ),*/
     );
   }
 
