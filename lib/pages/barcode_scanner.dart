@@ -164,7 +164,7 @@ class _Scanner_BState extends State<Scanner_B> {
                       style: TextStyle(
                         fontFamily: 'Muller',
                         color: Colors.white,
-                        fontSize: 20,
+                        fontSize: 12,
                         fontWeight: FontWeight.bold
                       ),
                     ),
