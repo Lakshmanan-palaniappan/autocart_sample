@@ -13,6 +13,8 @@ import 'package:open_file/open_file.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:slide_to_act/slide_to_act.dart';
 
+import 'login.dart';
+
 class Scanner_B extends StatefulWidget {
   final String user;
   final List<List<dynamic>> items;
@@ -64,6 +66,7 @@ class _Scanner_BState extends State<Scanner_B> {
     final Uint8List data = await inv.generateInvoice(name, price, customerName, mobileNumber);
     await inv.savedPdfFile(filename, data);
     OpenFile.open('Invoice.pdf');
+    update();
     nameController.clear();
     mobileController.clear();
     setState(() {
@@ -145,6 +148,21 @@ class _Scanner_BState extends State<Scanner_B> {
     );
   }
 
+  void update()async{
+    Map<String,dynamic> data = {};
+    int total = 0;
+    for(var bar in scannedBarcodes)
+    {
+      String name = check(bar)[0];
+      String price = check(bar)[1];
+      total+=int.parse(price);
+      data.addAll({name:price});
+    }
+    print(data);
+    data.addAll({'Total': total/2});
+    FirebaseFirestore.instance.collection(user).add(data);
+    print('Updated To FB');
+  }
 
   Future<void> _handlePaymentError() async {
     // Show alert dialog when payment fails
@@ -315,8 +333,9 @@ class _Scanner_BState extends State<Scanner_B> {
                   ? null
                   : () {
                 clearScannedProducts();
-              }, icon: Icon(Icons.clear_sharp))
+              }, icon: Icon(Icons.clear_sharp)),
         ],
+        leading: IconButton(onPressed: (){Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>Login(items: items)));}, icon: Icon(Icons.logout_outlined)),
         backgroundColor: Colors.lightGreenAccent,
         centerTitle: true,
         elevation: 0,
@@ -370,7 +389,7 @@ class _Scanner_BState extends State<Scanner_B> {
                   size: 25,
                 ),
                 onSubmit: () async {
-
+                  update();
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
