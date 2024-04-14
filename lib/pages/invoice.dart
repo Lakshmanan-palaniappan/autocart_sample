@@ -22,6 +22,10 @@ class Invoice {
     final sealData = await rootBundle.load('assets/paid_seal.png');
     final sealImage = pw.MemoryImage(sealData.buffer.asUint8List());
 
+    // Get current date and time
+    final now = DateTime.now();
+    final formattedDateTime = '${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}:${now.second}';
+
     pdf.addPage(
       pw.Page(
         build: (pw.Context context) {
@@ -123,6 +127,12 @@ class Invoice {
                   style: pw.TextStyle(font: ttfFont, fontWeight: pw.FontWeight.bold),
                 ),
                 pw.SizedBox(height: 20),
+                // Date and time
+                pw.Text(
+                  'Date and Time: $formattedDateTime',
+                  style: pw.TextStyle(fontSize: 12),
+                ),
+                pw.SizedBox(height: 20),
                 // Footer
                 pw.Divider(),
                 // Payment status with paid seal
@@ -156,21 +166,32 @@ class Invoice {
       ),
     );
 
-
     return pdf.save();
   }
 
-
   Future<void> savedPdfFile(String filename, Uint8List byteList) async {
-    final output = await getTemporaryDirectory();
-    var filepath = "${output.path}/$filename.pdf";
-    final file = File(filepath);
-    try {
-      await file.writeAsBytes(byteList);
-      print("PDF file saved at: $filepath");
-    } catch (e) {
-      print("Error saving PDF file: $e");
+    Directory? directory;
+    if (Platform.isAndroid) {
+      directory = await getExternalStorageDirectory();
+    } else if (Platform.isIOS) {
+      directory = await getApplicationDocumentsDirectory();
     }
-    await OpenFile.open(filepath);
+
+    if (directory != null) {
+      final output = directory.path;
+      var filepath = "$output/$filename.pdf";
+      final file = File(filepath);
+      try {
+        await file.writeAsBytes(byteList);
+        print("PDF file saved at: $filepath");
+        await OpenFile.open(filepath);
+      } catch (e) {
+        print("Error saving or opening PDF file: $e");
+      }
+    } else {
+      print("Unable to get the directory for saving PDF.");
+    }
   }
+
 }
+

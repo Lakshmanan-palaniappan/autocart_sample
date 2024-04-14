@@ -60,20 +60,110 @@ class _Scanner_BState extends State<Scanner_B> {
     String customerName = nameController.text.trim();
     String mobileNumber = mobileController.text.trim();
     print("customerName=$customerName");
-
+    final filename = "Invoice_$customerName.pdf";
     final Uint8List data = await inv.generateInvoice(name, price, customerName, mobileNumber);
-    await inv.savedPdfFile("Invoice.pdf", data);
+    await inv.savedPdfFile(filename, data);
     OpenFile.open('Invoice.pdf');
     nameController.clear();
     mobileController.clear();
+    setState(() {
+      scannedBarcodes.clear();
+      name.clear();
+      price.clear();
+      total = 0;
+    });
+  }
+  void clearScannedProducts() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.lightGreenAccent,
+          title: Text(
+            "Clear Scanned Products",
+            style: TextStyle(
+              fontFamily: 'Muller',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          content: Text(
+            "Are you sure you want to clear all scanned products?",
+            style: TextStyle(
+              fontFamily: 'Muller',
+              fontSize: 14,
+              color: Colors.black,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                "Cancel",
+                style: TextStyle(
+                  fontFamily: 'Muller',
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.redAccent,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+
+                setState(() {
+                  scannedBarcodes.clear();
+                  name.clear();
+                  price.clear();
+                  total = 0;
+                });
+                Navigator.pop(context);
+              },
+              child: Container(
+                padding: EdgeInsets.all(8),
+
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.black,
+                ),
+                child: Text(
+                  "Yes",
+                  style: TextStyle(
+                    fontFamily: 'Muller',
+                    fontSize: 14,
+                    color: Colors.lightGreenAccent,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  void _handlePaymentError() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Payment Failed'),
-        backgroundColor: Colors.red,
-      ),
+
+  Future<void> _handlePaymentError() async {
+    // Show alert dialog when payment fails
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Payment Failed'),
+          content: Text('Your payment was not successful.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -220,10 +310,12 @@ class _Scanner_BState extends State<Scanner_B> {
 
           ),
           SizedBox(width: 6.0,),
-          IconButton(onPressed: () async{
-
-
-          }, icon: Icon(Icons.info_outline))
+          IconButton(
+              onPressed: scannedBarcodes.isEmpty
+                  ? null
+                  : () {
+                clearScannedProducts();
+              }, icon: Icon(Icons.clear_sharp))
         ],
         backgroundColor: Colors.lightGreenAccent,
         centerTitle: true,
