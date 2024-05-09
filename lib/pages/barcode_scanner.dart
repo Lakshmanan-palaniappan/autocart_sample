@@ -32,6 +32,7 @@ class _Scanner_BState extends State<Scanner_B> {
   int total = 0;
   TextEditingController nameController = TextEditingController();
   TextEditingController mobileController = TextEditingController();
+  TextEditingController mailController = TextEditingController();
   List<String> scannedBarcodes = [];
   List<String> name = [];
   List<int> price = [];
@@ -61,14 +62,22 @@ class _Scanner_BState extends State<Scanner_B> {
 
     String customerName = nameController.text.trim();
     String mobileNumber = mobileController.text.trim();
+    String MailId=mailController.text.trim();
     print("customerName=$customerName");
     final filename = "Invoice_$customerName.pdf";
-    final Uint8List data = await inv.generateInvoice(name, price, customerName, mobileNumber);
-    await inv.savedPdfFile(filename, data);
+    final Uint8List data = await inv.generateInvoice(name, price, customerName, mobileNumber,MailId);
+    final filepath = await inv.savedPdfFile(filename, data);
+
+    if (filepath.isNotEmpty) {
+      await inv.sendInvoiceByEmail(MailId, data,filepath);
+    } else {
+      // Handle the case where the PDF file couldn't be saved
+    }
     OpenFile.open('Invoice.pdf');
     update();
     nameController.clear();
     mobileController.clear();
+    mailController.clear();
     setState(() {
       scannedBarcodes.clear();
       name.clear();
@@ -439,6 +448,39 @@ class _Scanner_BState extends State<Scanner_B> {
                               ),
                             ),
                             SizedBox(height: 20),
+                            TextField(
+                              controller: mailController,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: InputDecoration(
+                                hintText: 'Enter Mail',
+                                hintStyle: TextStyle(
+                                  color: Colors.grey,
+                                  fontFamily: 'Muller',
+                                  fontSize: 12,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.lightGreenAccent,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color: Colors.lightGreenAccent,
+                                  ),
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                filled: true,
+                                fillColor: Colors.black,
+                                contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
+                              ),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 12.0,
+                                fontFamily: "Muller",
+                              ),
+                            ),
+                            SizedBox(height: 20,),
                             TextField(
                               controller: mobileController,
                               keyboardType: TextInputType.phone,

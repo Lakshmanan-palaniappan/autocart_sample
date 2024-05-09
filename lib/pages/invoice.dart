@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:mailer/mailer.dart';
+import 'package:mailer/smtp_server/gmail.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -7,7 +9,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/services.dart';
 
 class Invoice {
-  Future<Uint8List> generateInvoice(List<String> names, List<int> prices, String customerName, String mobileNumber) async {
+  Future<Uint8List> generateInvoice(List<String> names, List<int> prices, String customerName, String mobileNumber, String CustomerMail) async {
     final pdf = pw.Document();
 
     // Load a custom TTF font that supports the Indian Rupee symbol
@@ -169,7 +171,7 @@ class Invoice {
     return pdf.save();
   }
 
-  Future<void> savedPdfFile(String filename, Uint8List byteList) async {
+  Future<String> savedPdfFile(String filename, Uint8List byteList) async {
     Directory? directory;
     if (Platform.isAndroid) {
       directory = await getExternalStorageDirectory();
@@ -185,11 +187,34 @@ class Invoice {
         await file.writeAsBytes(byteList);
         print("PDF file saved at: $filepath");
         await OpenFile.open(filepath);
+        return filepath; // Return the filepath after successfully saving the PDF
       } catch (e) {
         print("Error saving or opening PDF file: $e");
+        return ''; // Return an empty string or handle the error in your application
       }
     } else {
       print("Unable to get the directory for saving PDF.");
+      return ''; // Return an empty string or handle the error in your application
+    }
+  }  Future<void> sendInvoiceByEmail(String customerEmail, Uint8List pdfBytes,String filepath) async {
+    final smtpServer = gmail('developershelby04@gmail.com', 'pqmabvlizumggnmq');
+
+    final message = Message()
+      ..from = Address('developershleby04@gmail.com', 'AutoCart')
+      ..recipients.add(customerEmail)
+      ..subject = 'Invoice for Your Purchase'
+      ..html = 'Dear Customer,<br><br>'
+          'Please find attached the invoice for your recent purchase.<br><br>'
+          'Thank you for choosing our service.<br><br>'
+          'Regards,<br>'
+          'AutoCart Team'
+      ..attachments.add(FileAttachment(File(filepath)));
+
+    try {
+      final sendReport = await send(message, smtpServer);
+      print('Message sent: ' + sendReport.toString());
+    } catch (e) {
+      print('Error sending email: $e');
     }
   }
 
