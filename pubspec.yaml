@@ -95,6 +95,7 @@ flutter:
     - assets/paid_seal.png
     - assets/Roboto-Regular.ttf
     - assets/logo.png
+    - assets/cart.json
     - .env
   #   - images/a_dot_ham.jpeg
 

@@ -3,8 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:usb_serial/usb_serial.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:autocart/pages/invoice.dart';
-import 'package:autocart/pages/payment.dart';
-import 'package:autocart/pages/pdf.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -51,19 +49,6 @@ class _Scanner_BState extends State<Scanner_B> {
     _focusNode.requestFocus();
 
   }
-  /*void succespayment() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Payment Successful'),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    // Generate and display the PDF invoice only if payment is successful
-    final Uint8List data = await inv.generateInvoice(name, price);
-    await inv.savedPdfFile("Invoice.pdf", data);
-    OpenFile.open("Invoice.pdf");
-  }*/
   late DateTime lastPaidTime;
 
   Future<void> _handlePaymentSuccess(PaymentSuccessResponse response) async {

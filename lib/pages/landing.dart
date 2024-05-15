@@ -63,8 +63,7 @@ class _Landing_pageState extends State<Landing_page> {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Center(
-        child: Lottie.network
-          ("https://lottie.host/20a3b10f-bcca-467e-adb6-66f6b459d266/nhS7JwmoMe.json"),
+        child: Lottie.asset('assets/cart.json'),
       ),
 
     );
