@@ -1,5 +1,6 @@
 import 'dart:typed_data';
-
+import 'package:flutter/services.dart';
+import 'package:usb_serial/usb_serial.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:autocart/pages/invoice.dart';
 import 'package:autocart/pages/payment.dart';
@@ -30,17 +31,24 @@ class _Scanner_BState extends State<Scanner_B> {
   final List<List<dynamic>> items;
   final String user;
   int total = 0;
+  UsbPort? _port;
+  bool emailSent = false;
   TextEditingController nameController = TextEditingController();
   TextEditingController mobileController = TextEditingController();
   TextEditingController mailController = TextEditingController();
   List<String> scannedBarcodes = [];
   List<String> name = [];
   List<int> price = [];
+  String _currentBarcode = '';
+  late FocusNode _focusNode;
   final player=AudioPlayer();
   _Scanner_BState(this.user,this.items);
   void initState(){
     super.initState();
+    lastPaidTime = DateTime.now();
     _razorPay=new Razorpay();
+    _focusNode = FocusNode();
+    _focusNode.requestFocus();
 
   }
   /*void succespayment() async {
@@ -56,34 +64,44 @@ class _Scanner_BState extends State<Scanner_B> {
     await inv.savedPdfFile("Invoice.pdf", data);
     OpenFile.open("Invoice.pdf");
   }*/
+  late DateTime lastPaidTime;
 
   Future<void> _handlePaymentSuccess(PaymentSuccessResponse response) async {
-    print("Payment successful");
-
-    String customerName = nameController.text.trim();
-    String mobileNumber = mobileController.text.trim();
-    String MailId=mailController.text.trim();
-    print("customerName=$customerName");
-    final filename = "Invoice_$customerName.pdf";
-    final Uint8List data = await inv.generateInvoice(name, price, customerName, mobileNumber,MailId);
-    final filepath = await inv.savedPdfFile(filename, data);
-
-    if (filepath.isNotEmpty) {
-      await inv.sendInvoiceByEmail(MailId, data,filepath);
-    } else {
-      // Handle the case where the PDF file couldn't be saved
+    final difference = DateTime.now().difference(lastPaidTime);
+    print(difference);
+    if (difference.inSeconds < 2) {
+      print("Prevented");
     }
-    OpenFile.open('Invoice.pdf');
-    update();
-    nameController.clear();
-    mobileController.clear();
-    mailController.clear();
-    setState(() {
-      scannedBarcodes.clear();
-      name.clear();
-      price.clear();
-      total = 0;
-    });
+    else {
+      print("Payment successful");
+      lastPaidTime = DateTime.now();
+      String customerName = nameController.text.trim();
+      String mobileNumber = mobileController.text.trim();
+      String MailId = mailController.text.trim();
+      print("customerName=$customerName");
+      final filename = "Invoice_$customerName.pdf";
+      final Uint8List data = await inv.generateInvoice(
+          name, price, customerName, mobileNumber, MailId);
+      final filepath = await inv.savedPdfFile(filename, data);
+
+      if (filepath.isNotEmpty) {
+        await inv.sendInvoiceByEmail(MailId, data, filepath);
+        emailSent = true;
+      } else {
+        // Handle the case where the PDF file couldn't be saved
+      }
+      OpenFile.open('Invoice.pdf');
+      update();
+      nameController.clear();
+      mobileController.clear();
+      mailController.clear();
+      setState(() {
+        scannedBarcodes.clear();
+        name.clear();
+        price.clear();
+        total = 0;
+      });
+    }
   }
   void clearScannedProducts() {
     showDialog(
@@ -206,19 +224,20 @@ class _Scanner_BState extends State<Scanner_B> {
   void dispose(){
     super.dispose();
     _razorPay.clear();
+    _focusNode.dispose();
   }
 
   List<String> check(String barcode){
     List<String> result = ['Undefined Item!!','0'];
     for(var item in items)
-      {
+    {
 
-        if(identical(item[0], int.parse(barcode)))
-          {
-            return [item[1], item[2].toString()];
-            //break;
-          }
+      if(identical(item[0], int.parse(barcode)))
+      {
+        return [item[1], item[2].toString()];
+        //break;
       }
+    }
     return [];
 
 
@@ -305,10 +324,10 @@ class _Scanner_BState extends State<Scanner_B> {
                     child: Text(
                       "₹$p.0",
                       style: TextStyle(
-                        fontFamily: 'Muller',
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold
+                          fontFamily: 'Muller',
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold
                       ),
                     ),
                   ),
@@ -330,9 +349,9 @@ class _Scanner_BState extends State<Scanner_B> {
       appBar: AppBar(
         actions: [
           GestureDetector(
-              child: Icon(
-                  Icons.qr_code_scanner
-              ),
+            child: Icon(
+                Icons.qr_code_scanner
+            ),
             onTap: scanBarcode,
 
           ),
@@ -349,243 +368,330 @@ class _Scanner_BState extends State<Scanner_B> {
         centerTitle: true,
         elevation: 0,
         title: Text("AutoCart",style: TextStyle(
-          fontFamily: 'Battery',
-          fontWeight: FontWeight.bold
+            fontFamily: 'Battery',
+            fontWeight: FontWeight.bold
         ),),
       ),
-      body: Stack(
-        children: [
-          scannedBarcodes.isEmpty || total<=0
-              ? Center(
-            child: Text(
-              "Add Products !",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: "Muller"
-              ),
-            ),
-          ):
-          ListView.builder(
+      body: RawKeyboardListener(
+        focusNode: _focusNode,
+        onKey: (event) {
+          if (event is RawKeyUpEvent) {
+            final logicalKey = event.logicalKey;
+            if (logicalKey == LogicalKeyboardKey.arrowDown) {
+              return; // Ignore Arrow Down key
+            }
+            final keyLabel = logicalKey.keyLabel;
+            if (keyLabel != null) {
+              if (keyLabel == 'Enter') {
+                if (_currentBarcode.isNotEmpty) {
+                  setState(() {
+                    scannedBarcodes.add(_currentBarcode);
 
-            itemCount: scannedBarcodes.length,
-            itemBuilder: (context, index) {
-              print(index);
-              return item(index);
-            },
-          ),
-          if (total > 0)
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: SlideAction(
-                alignment: Alignment.bottomCenter,
-                elevation: 0,
-                borderRadius: 12.0,
-                innerColor: Colors.black,
-                outerColor: Colors.green,
-                animationDuration: Duration(milliseconds: 1000),
-                text: "Pay ₹$total.0 RS",
-                textStyle: TextStyle(
-                  color: Colors.black,
-                  fontFamily: "Muller",
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-                sliderButtonIcon: Icon(
-                  Icons.fast_forward,
-                  color: Colors.lightGreenAccent,
-                  size: 25,
-                ),
-                onSubmit: () async {
-                  update();
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return AlertDialog(
-                        backgroundColor: Colors.lightGreenAccent,
-                        title: Text(
-                          'Enter Details',
-                          style: TextStyle(
-                            fontFamily: 'Muller',
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        content: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            TextField(
-                              controller: nameController,
-                              keyboardType: TextInputType.name,
-                              decoration: InputDecoration(
-                                hintText: 'Enter Name',
-                                hintStyle: TextStyle(
-                                  color: Colors.grey,
-                                  fontFamily: 'Muller',
-                                  fontSize: 12,
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.lightGreenAccent,
+                    print(scannedBarcodes);
+                    List<String> ans = check(_currentBarcode);
+                    if (ans.isNotEmpty) {
+                      scannedBarcodes.add(_currentBarcode);
+                      name.add(ans[0]);
+                      price.add(int.parse(ans[1]));
+                      total+=int.parse(ans[1]);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Stack(
+                            children: [
+                              Container(
+                                  padding: EdgeInsets.all(16),
+                                  height: 90,
+                                  decoration: BoxDecoration(
+                                      color: Color(0xFFC72C41),
+                                      borderRadius: BorderRadius.all(Radius.circular(20))
                                   ),
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.lightGreenAccent,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                filled: true,
-                                fillColor: Colors.black,
-                                contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-                              ),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12.0,
-                                fontFamily: "Muller",
-                              ),
-                            ),
-                            SizedBox(height: 20),
-                            TextField(
-                              controller: mailController,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: InputDecoration(
-                                hintText: 'Enter Mail',
-                                hintStyle: TextStyle(
-                                  color: Colors.grey,
-                                  fontFamily: 'Muller',
-                                  fontSize: 12,
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.lightGreenAccent,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.lightGreenAccent,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                filled: true,
-                                fillColor: Colors.black,
-                                contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-                              ),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12.0,
-                                fontFamily: "Muller",
-                              ),
-                            ),
-                            SizedBox(height: 20,),
-                            TextField(
-                              controller: mobileController,
-                              keyboardType: TextInputType.phone,
-                              decoration: InputDecoration(
-                                hintText: 'Enter Mobile Number',
-                                hintStyle: TextStyle(
-                                  fontFamily: 'Muller',
-                                  fontSize: 10,
-                                  color: Colors.grey,
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.lightGreenAccent,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Colors.lightGreenAccent,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10.0),
-                                ),
-                                filled: true,
-                                fillColor: Colors.black,
-                                contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
-                              ),
-                              style: TextStyle(
-                                fontFamily: 'Muller',
-                                color: Colors.white,
-                                fontSize: 14.0,
-                              ),
-                            ),
-                            SizedBox(height: 10),
-                          ],
-                        ),
-                        actions: [
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              foregroundColor: Colors.lightGreenAccent,
-                              backgroundColor: Colors.black,
-                              padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 30.0),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                              ),
-                            ),
-                            onPressed: () async {
-                              String name = nameController.text.trim();
-                              String mobile = mobileController.text.trim();
-                              if (name.isEmpty || mobile.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      "Please enter your name and mobile number.",
-                                      style: TextStyle(
-                                        fontFamily: 'Muller',
-                                        color: Colors.white,
-                                        fontSize: 12,
+                                  child: const Row(
+
+                                    children: [
+                                      SizedBox(width: 48,),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text("Oh Snap !",style: TextStyle(
+                                                fontFamily: 'Muller',
+                                                color: Colors.white,
+                                                fontSize: 14
+                                            ),
+                                            ),
+                                            SizedBox(height: 6,),
+                                            Text("Please Enter Correct Username Or Password",style: TextStyle(
+                                                color: Colors.white,
+                                                fontFamily: 'Muller',
+                                                fontSize: 8
+                                            ),
+                                              maxLines: 4,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                    backgroundColor: Colors.red,
-                                  ),
-                                );
-                              } else {
-                                Navigator.pop(context);
-                                var options = {
-                                  'key': 'rzp_test_Spkh9hBLwHj1UR',
-                                  'amount': total * 100,
-                                  'name': name,
-                                  'description': 'Payment for your purchase',
-                                  'prefill': {
-                                    'name': name,
-                                    'contact': mobile,
-                                  },
-                                  'external': {
-                                    'wallets': ['paytm']
-                                  }
-                                };
-                                try {
-                                  _razorPay.open(options);
-                                } catch (e) {
-                                  debugPrint('Error: $e');
-                                }
-                                // nameController.clear();
-                                // mobileController.clear();
-                              }
-                            },
-                            child: Text(
-                              'Pay Now',
-                              style: TextStyle(
-                                fontFamily: 'Muller',
+                                    ],
+                                  )
                               ),
+                            ],
+                          ),
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.transparent,
+                          elevation: 0,
+                        ),
+                      );
+
+                    }
+                    _currentBarcode = '';
+
+                  });
+                }
+              } else {
+                setState(() {
+                  _currentBarcode += keyLabel;
+                });
+              }
+            }
+          }
+        },
+
+        child: Stack(
+          children: [
+            scannedBarcodes.isEmpty || total<=0
+                ? Center(
+              child: Text(
+                "Add Products !",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "Muller"
+                ),
+              ),
+            ):
+            ListView.builder(
+
+              itemCount: scannedBarcodes.length,
+              itemBuilder: (context, index) {
+                print(index);
+                return item(index);
+              },
+            ),
+            if (total > 0)
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: SlideAction(
+                  alignment: Alignment.bottomCenter,
+                  elevation: 0,
+                  borderRadius: 12.0,
+                  innerColor: Colors.black,
+                  outerColor: Colors.green,
+                  animationDuration: Duration(milliseconds: 1000),
+                  text: "Pay ₹$total.0 RS",
+                  textStyle: TextStyle(
+                    color: Colors.black,
+                    fontFamily: "Muller",
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                  sliderButtonIcon: Icon(
+                    Icons.fast_forward,
+                    color: Colors.lightGreenAccent,
+                    size: 25,
+                  ),
+                  onSubmit: () async {
+                    // update();
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          backgroundColor: Colors.lightGreenAccent,
+                          title: Text(
+                            'Enter Details',
+                            style: TextStyle(
+                              fontFamily: 'Muller',
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ],
-                      );
-                    },
-                  );
-                },
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              TextField(
+                                controller: nameController,
+                                keyboardType: TextInputType.name,
+                                decoration: InputDecoration(
+                                  hintText: 'Enter Name',
+                                  hintStyle: TextStyle(
+                                    color: Colors.grey,
+                                    fontFamily: 'Muller',
+                                    fontSize: 12,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.lightGreenAccent,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.lightGreenAccent,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.black,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
+                                ),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12.0,
+                                  fontFamily: "Muller",
+                                ),
+                              ),
+                              SizedBox(height: 20),
+                              TextField(
+                                controller: mailController,
+                                keyboardType: TextInputType.emailAddress,
+                                decoration: InputDecoration(
+                                  hintText: 'Enter Mail',
+                                  hintStyle: TextStyle(
+                                    color: Colors.grey,
+                                    fontFamily: 'Muller',
+                                    fontSize: 12,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.lightGreenAccent,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.lightGreenAccent,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.black,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
+                                ),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12.0,
+                                  fontFamily: "Muller",
+                                ),
+                              ),
+                              SizedBox(height: 20,),
+                              TextField(
+                                controller: mobileController,
+                                keyboardType: TextInputType.phone,
+                                decoration: InputDecoration(
+                                  hintText: 'Enter Mobile Number',
+                                  hintStyle: TextStyle(
+                                    fontFamily: 'Muller',
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.lightGreenAccent,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Colors.lightGreenAccent,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.black,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
+                                ),
+                                style: TextStyle(
+                                  fontFamily: 'Muller',
+                                  color: Colors.white,
+                                  fontSize: 14.0,
+                                ),
+                              ),
+                              SizedBox(height: 10),
+                            ],
+                          ),
+                          actions: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor: Colors.lightGreenAccent,
+                                backgroundColor: Colors.black,
+                                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 30.0),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                              ),
+                              onPressed: () async {
+                                String name = nameController.text.trim();
+                                String mobile = mobileController.text.trim();
+                                if (name.isEmpty || mobile.isEmpty) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        "Please enter your name and mobile number.",
+                                        style: TextStyle(
+                                          fontFamily: 'Muller',
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                } else {
+                                  Navigator.pop(context);
+                                  var options = {
+                                    'key': 'rzp_test_Spkh9hBLwHj1UR',
+                                    'amount': total * 100,
+                                    'name': name,
+                                    'description': 'Payment for your purchase',
+                                    'prefill': {
+                                      'name': name,
+                                      'contact': mobile,
+                                    },
+                                    'external': {
+                                      'wallets': ['paytm']
+                                    }
+                                  };
+                                  try {
+                                    _razorPay.open(options);
+                                  } catch (e) {
+                                    debugPrint('Error: $e');
+                                  }
+                                  // nameController.clear();
+                                  // mobileController.clear();
+                                }
+                              },
+                              child: Text(
+                                'Pay Now',
+                                style: TextStyle(
+                                  fontFamily: 'Muller',
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
 
+                ),
               ),
-            ),
 
 
-        ],
+          ],
 
+        ),
       ),
       /*floatingActionButton: FloatingActionButton(
         onPressed: () async {
@@ -626,11 +732,11 @@ class _Scanner_BState extends State<Scanner_B> {
             content: Stack(
               children: [
                 Container(
-                  padding: EdgeInsets.all(16),
-                  height: 90,
+                    padding: EdgeInsets.all(16),
+                    height: 90,
                     decoration: BoxDecoration(
-                      color: Color(0xFFC72C41),
-                      borderRadius: BorderRadius.all(Radius.circular(20))
+                        color: Color(0xFFC72C41),
+                        borderRadius: BorderRadius.all(Radius.circular(20))
                     ),
                     child: const Row(
 
@@ -641,16 +747,16 @@ class _Scanner_BState extends State<Scanner_B> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text("Oh Snap !",style: TextStyle(
-                                fontFamily: 'Muller',
-                                color: Colors.white,
-                                fontSize: 18
+                                  fontFamily: 'Muller',
+                                  color: Colors.white,
+                                  fontSize: 18
                               ),
                               ),
                               SizedBox(height: 8,),
                               Text("Not Our Product",style: TextStyle(
-                                color: Colors.white,
-                                fontFamily: 'Muller',
-                                fontSize: 12
+                                  color: Colors.white,
+                                  fontFamily: 'Muller',
+                                  fontSize: 12
                               ),
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,

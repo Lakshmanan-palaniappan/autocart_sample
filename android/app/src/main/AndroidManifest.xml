@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.USB_PERMISSION" />
+
     <application
         android:label="AutoCart-The Future Of Shopping"
         android:name="${applicationName}"

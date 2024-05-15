@@ -38,11 +38,105 @@ class _LoginState extends State<Login> {
       }
       else
       {
-        print('Incorrect Key');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Stack(
+              children: [
+                Container(
+                    padding: EdgeInsets.all(16),
+                    height: 90,
+                    decoration: BoxDecoration(
+                        color: Color(0xFFC72C41),
+                        borderRadius: BorderRadius.all(Radius.circular(20))
+                    ),
+                    child: const Row(
+
+                      children: [
+                        SizedBox(width: 48,),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("Oh Snap !",style: TextStyle(
+                                  fontFamily: 'Muller',
+                                  color: Colors.white,
+                                  fontSize: 14
+                              ),
+                              ),
+                              SizedBox(height: 6,),
+                              Text("Please Enter Correct Password",style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'Muller',
+                                  fontSize: 8
+                              ),
+                                maxLines: 4,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                ),
+              ],
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+          ),
+        );
       }
     }
     else{
-      print("Invalid Cart Code");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Stack(
+            children: [
+              Container(
+                  padding: EdgeInsets.all(16),
+                  height: 90,
+                  decoration: BoxDecoration(
+                      color: Color(0xFFC72C41),
+                      borderRadius: BorderRadius.all(Radius.circular(20))
+                  ),
+                  child: const Row(
+
+                    children: [
+                      SizedBox(width: 48,),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Oh Snap !",style: TextStyle(
+                                fontFamily: 'Muller',
+                                color: Colors.white,
+                                fontSize: 14
+                            ),
+                            ),
+                            SizedBox(height: 6,),
+                            Text("Please Enter Correct Username Or Password",style: TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'Muller',
+                                fontSize: 8
+                            ),
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+              ),
+            ],
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+        ),
+      );
     }
     print(userNameController.text);
     print(passwordController.text);
