@@ -50,6 +50,25 @@ class _Scanner_BState extends State<Scanner_B> {
 
   }
   late DateTime lastPaidTime;
+  int orderId = 0;
+  Future<void> _fetchLastOrderId() async {
+    // Fetch the last order from Firestore
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection(user)
+        .orderBy('orderId', descending: true)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      setState(() {
+        orderId = snapshot.docs.first['orderId']+1;
+      });
+    }
+  }
+
+
+
+
 
   Future<void> _handlePaymentSuccess(PaymentSuccessResponse response) async {
     final difference = DateTime.now().difference(lastPaidTime);
@@ -65,8 +84,9 @@ class _Scanner_BState extends State<Scanner_B> {
       String MailId = mailController.text.trim();
       print("customerName=$customerName");
       final filename = "Invoice_$customerName.pdf";
+      await _fetchLastOrderId();
       final Uint8List data = await inv.generateInvoice(
-          name, price, customerName, mobileNumber, MailId);
+          name, price, customerName, mobileNumber, MailId,orderId);
       final filepath = await inv.savedPdfFile(filename, data);
 
       if (filepath.isNotEmpty) {
@@ -160,19 +180,31 @@ class _Scanner_BState extends State<Scanner_B> {
     );
   }
 
-  void update()async{
-    Map<String,dynamic> data = {};
+  Future<void> update() async {
+    // Increment orderId
+
+    // Prepare order data
+    Map<String, dynamic> data = {
+      'orderId': orderId,
+      'customerName': nameController.text.trim(),
+      'mobileNumber': mobileController.text.trim(),
+      'mailId': mailController.text.trim(),
+      'items': [],
+      'timestamp': FieldValue.serverTimestamp(),
+    };
+
     int total = 0;
-    for(var bar in scannedBarcodes)
-    {
+    for (var bar in scannedBarcodes) {
       String name = check(bar)[0];
       String price = check(bar)[1];
-      total+=int.parse(price);
-      data.addAll({name:price});
+      total += int.parse(price);
+      data['items'].add({'name': name, 'price': price});
     }
-    print(data);
-    data.addAll({'Total': total/2});
-    FirebaseFirestore.instance.collection(user).add(data);
+
+    data.addAll({'Total': total / 2});
+
+    // Save order details to Firestore
+    await FirebaseFirestore.instance.collection(user).add(data);
     print('Updated To FB');
   }
 

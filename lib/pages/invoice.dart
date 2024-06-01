@@ -9,7 +9,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/services.dart';
 
 class Invoice {
-  Future<Uint8List> generateInvoice(List<String> names, List<int> prices, String customerName, String mobileNumber, String CustomerMail) async {
+  Future<Uint8List> generateInvoice(List<String> names, List<int> prices, String customerName, String mobileNumber, String customerMail, int orderId) async {
     final pdf = pw.Document();
 
     // Load a custom TTF font that supports the Indian Rupee symbol
@@ -98,6 +98,12 @@ class Invoice {
                   ],
                 ),
                 pw.SizedBox(height: 20),
+                // Order ID
+                pw.Text(
+                  'Order ID: $orderId',
+                  style: pw.TextStyle(fontSize: 12),
+                ),
+                pw.SizedBox(height: 20),
                 // Table for items and prices
                 pw.Table.fromTextArray(
                   headers: ['Item', 'Price'],
@@ -171,6 +177,7 @@ class Invoice {
     return pdf.save();
   }
 
+
   Future<String> savedPdfFile(String filename, Uint8List byteList) async {
     Directory? directory;
     if (Platform.isAndroid) {
@@ -204,7 +211,7 @@ class Invoice {
       ..recipients.add(customerEmail)
       ..subject = 'Invoice for Your Purchase'
       ..html = 'Dear Customer,<br><br>'
-          'Please find attached the invoice for your recent purchase.<br><br>'
+          'Please find the attached invoice for your recent purchase.<br><br>'
           'Thank you for choosing our service.<br><br>'
           'Regards,<br>'
           'AutoCart Team'
